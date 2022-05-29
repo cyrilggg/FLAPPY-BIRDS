@@ -9,51 +9,9 @@ HOST = '127.0.0.1'
 PORT = 5555
 ADDR = (HOST, PORT)
 BUFFSIZE = 1024
-MAX_LISTEN = 5
+MAX_LISTEN = 2
     
 Map = newMap()
-conns = []
-
-def send_to_all_client():
-    global Map
-    while True:
-        for conn in conns:
-            try:
-                conn.sendall(pickle.dumps(Map))
-            except socket.error as e:
-                print("发送失败")
-                print(e)
-
-#接收地图数据并回传
-def threaded_client(conn):
-    global Map
-    send_to_all_client()
-    #time.sleep(50)
-    
-    print("Sending : ", pickle.dumps(Map), conn)
-    while True:
-        try:
-            print("Trying")
-            data = pickle.loads(conn.recv(2048))
-            print(type(data))
-            #print(type(data), data.ip, data.up, data.prop,data.gameover)
-            if not data:
-                print("Disconnected")
-                break
-            else:
-                #更新数据
-                #analize_map(data)
-                print("Received: ", data)
-                print("Sending : ", Map)
-
-            send_to_all_client()
-            time.sleep(50)
-        
-        except:
-            break
-
-    print("Lost connection")
-    conn.close()
 
 #更新地图
 def analize_map(Data):
@@ -101,17 +59,34 @@ def init():
     Map.Pipes.append(Pipe1)
     Map.Pipes.append(Pipe2)
 
-def Game_Start(currentPlay, conns):
+def Game_Start(conn, addr):
     global Map
-    index = 1
     start_new_thread(update_pipe,())#开一个线程去全局更新地图
+    index = 0
+    bird = Bird(addr)
+    Map.Birds.append(bird)
+    conn.sendall(pickle.dumps(Map))
+    while True:
+        try:
+            print("Trying")
+            data = pickle.loads(conn.recv(2048))
+            #print(type(data), data.ip, data.up, data.prop,data.gameover)
+            if not data:
+                print("Disconnected")
+                break
+            else:
+                #更新数据
+                analize_map(data)
+                print("Received: ", data)
+                print("Sending : ", Map)
+
+            conn.sendall(pickle.dumps(Map))
+        except:
+            break
+
+    print("Lost connection")
+    conn.close()
     
-    for conn in conns:
-        bird = Bird(index)
-        index += 1
-        Map.Birds.append(bird)
-        start_new_thread(threaded_client, (conn,))
-    start_new_thread(send_to_all_client, ())    
 def main():
     init()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -121,16 +96,13 @@ def main():
         s.listen(MAX_LISTEN)
         print('Wating')
         currentPlayer = 0
-        global conns
+
+        conns = []
         while True:
             # 等待客户端连接请求,获取connSock
             conn, addr = s.accept()
-            conns.append(conn)
-            print("Connected to:", addr)
-            currentPlayer += 1
-            if (currentPlayer == 1):
-                Game_Start(currentPlayer, conns)
-                break
+            Game_Start(conn, addr)
+            break
         s.close()
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+#coding: gbk
 import socket
 import pickle
 from Map_Data import *
@@ -9,10 +10,11 @@ class Network:
         self.port = 5555
         self.addr = (self.server, self.port)
         self.p = self.connect()
+        
 
     def getP(self):
         return self.p
-
+ 
     def connect(self):
         try:
             self.client.connect(self.addr)
@@ -25,4 +27,5 @@ class Network:
             self.client.send(pickle.dumps(data))
             return pickle.loads(self.client.recv(2048))
         except socket.error as e:
+            print("∑¢ÀÕ ß∞‹")
             print(e)
