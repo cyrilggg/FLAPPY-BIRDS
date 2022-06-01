@@ -9,7 +9,7 @@ FPS = 60  # 刷新率
 PIPE_GAPS = [90, 100, 110, 120, 130, 140]  # 缺口的距离 有这6个随机距离
 # PIPE_GAPS1 = []
 PIPE_HEIGHT_RANGE = [int(MAP_HEIGHT * 0.5), int(MAP_HEIGHT * 0.7)]  # 管道长度范围
-PIPE_DISTANCE = 120  # 管道之间距离
+PIPE_DISTANCE = 160  # 管道之间距离
 
 ######################################## 加载素材
 SPRITE_FILE = '.\images\\'
@@ -49,7 +49,7 @@ class Pipe():
     def update(self):
         self.trect.x += self.x_vel  # 管道x轴加移动速度
         self.brect.x += self.x_vel
-        if self.trect.x < 0:
+        if self.trect.x < -IMAGES['pipe'][1].get_width():
             self.trect.top = random.randint(PIPE_HEIGHT_RANGE[0], PIPE_HEIGHT_RANGE[1])
             self.brect.bottom = self.trect.top - random.choice(PIPE_GAPS)
             self.trect.x = MAP_WIDTH
@@ -59,6 +59,7 @@ class Bird():
         def __init__(self, addr):
             self.name = "NewBee"
             self.ip = addr
+            self.score = 0
             self.frame_list = [0] * 5 + [1] * 5 + [2] * 5 + [1] * 5  # 控制小鸟翅膀运动上中下
             self.frame_index = 0
             self.y_vel = -10  # y坐标的速度
@@ -72,6 +73,7 @@ class Bird():
             self.rect.x = MAP_WIDTH * 0.2
             self.rect.y = MAP_HEIGHT * 0.5 - IMAGES['bird'][0].get_height() / 2
             self.gravity = 1  # 重力
+            self.gameover = 0
             self.flap_acc = -10  # 翅膀拍打往上飞 y坐标-10
 
         def update(self, flap=False):
@@ -87,14 +89,15 @@ class Bird():
 
             self.frame_index += 1  # 扇翅膀的速率
             self.frame_index %= len(self.frame_list)  # 0~20
-            #self.image = pygame.transform.rotate(IMAGES['bird'][self.frame_list[self.frame_index]], self.rotate)  # transform变形方法 旋转
+            if self.rect.y >= FLOOR_H:
+                self.rect.y = FLOOR_H
+                self.gameover = 1
 
         def go_die(self):
             if self.rect.y < FLOOR_H:
                 self.y_vel = self.max_y_vel
                 self.rect.y += self.y_vel
                 self.rotate = -90
-                self.image = pygame.transform.rotate(IMAGES['bird'][self.frame_list[self.frame_index]], self.rotate)
 #定义道具
 class Prop:
     pass
