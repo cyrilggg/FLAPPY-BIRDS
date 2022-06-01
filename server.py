@@ -29,8 +29,8 @@ def send_to_all_client():
 #接收地图数据并回传
 def threaded_client(conn, addr):
     global Map
-    conn.send(addr[0].encode())
-    send_to_all_client()
+    conn.send(addr[0].encode()) #回传自己的ip
+    #send_to_all_client()
     while True:
         try:
             data = pickle.loads(conn.recv(2048))
@@ -68,6 +68,8 @@ def analize_map(Data):
         if bird.gameover == 1:
             if bird.rect.y < FLOOR_H:
                 bird.update(False)
+            if bird.rect.x > -50:
+                bird.rect.x -= 5
             continue
         
         if bird.ip == Data.ip:
@@ -78,11 +80,14 @@ def analize_map(Data):
             if Data.up:
                 flap = True
             bird.update(flap)
-            if  bird.rect.y > FLOOR_H or bird.rect.y < 0 :
+            if  bird.rect.y > FLOOR_H or bird.rect.y < 0:
                 # 保存死亡时的鸟儿 分数 管道 继续显示在结束窗口
                 bird.gameover = 1
                 bird.go_die()
-            
+            for pipe in Map.Pipes:
+                if pipe.trect.colliderect(bird.rect) or pipe.brect.colliderect(bird.rect):
+                    bird.gameover = 1
+                    bird.go_die() 
             #当小鸟左边大于 管道右边就得分
             if min(Map.Pipes[0].trect.x, Map.Pipes[1].trect.x) == 56:
                 bird.score += 1
@@ -131,7 +136,7 @@ def main():
             s.listen(MAX_LISTEN)
             currentPlayer = 0
             while True:
-                # 等待客户端连接请求
+                # 等待客户端连接请求]
                 conn, addr = s.accept()
                 conns.append(conn)
                 print('[*] Client connected from: ',addr[0],':',addr[1],sep='')

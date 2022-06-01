@@ -50,7 +50,7 @@ def connect():
     run = True
     n = Network()
     p = n.getP()
-    Own_Ip = p
+    Own_Ip = p#获取连接到服务器时自己的客户端地址
     clock = pygame.time.Clock()
     
     while run:
