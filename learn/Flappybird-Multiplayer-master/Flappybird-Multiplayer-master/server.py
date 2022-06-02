@@ -64,7 +64,7 @@ def handle_client(client):
                 #If all players are dead
                 if dead_players==number_of_clients:
                     time.sleep(2)
-                    ready_players=0
+                    ready_players=0 
                     game_state = '/s*q'
                     data = game_state
 

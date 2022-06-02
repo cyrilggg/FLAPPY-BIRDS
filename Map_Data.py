@@ -6,9 +6,9 @@ import random
 MAP_WIDTH = 288  # 地图大小
 MAP_HEIGHT = 512
 FPS = 60  # 刷新率
-PIPE_GAPS = [90, 100, 110, 120, 130, 140]  # 缺口的距离 有这6个随机距离
+PIPE_GAPS = [180, 190, 150, 160, 145, 140]  # 缺口的距离 有这6个随机距离
 # PIPE_GAPS1 = []
-PIPE_HEIGHT_RANGE = [int(MAP_HEIGHT * 0.5), int(MAP_HEIGHT * 0.7)]  # 管道长度范围
+PIPE_HEIGHT_RANGE = [int(MAP_HEIGHT * 0.4), int(MAP_HEIGHT * 0.7)]  # 管道长度范围
 PIPE_DISTANCE = 160  # 管道之间距离
 
 ######################################## 加载素材
@@ -56,9 +56,8 @@ class Pipe():
             self.brect.x = MAP_WIDTH
 
 class Bird():
-        def __init__(self, addr):
-            self.name = "NewBee"
-            self.ip = addr
+        def __init__(self, addr, name):
+            self.name = name
             self.score = 0
             self.frame_list = [0] * 5 + [1] * 5 + [2] * 5 + [1] * 5  # 控制小鸟翅膀运动上中下
             self.frame_index = 0
@@ -75,6 +74,19 @@ class Bird():
             self.gravity = 1  # 重力
             self.gameover = 0
             self.flap_acc = -10  # 翅膀拍打往上飞 y坐标-10
+            
+            #道具——无敌时间
+            self.invincibility_time = 0
+
+            #00 未开始 01 开始中 10 一开始 11 结束
+            self.gamestate1 = 0
+            self.gamestate2 = 0
+            self.gameover = 0
+
+            self.curstate = False
+            self.surstate = False
+            
+            self.ip = addr
 
         def update(self, flap=False):
             if flap:
@@ -87,20 +99,20 @@ class Bird():
             self.rect.y += self.y_vel  # 小鸟向上移动的距离
             self.rorate = max(self.rotate + self.rotate_vel, self.max_rotate)
 
+            if self.invincibility_time > 0:
+                self.invincibility_time -= 1
             self.frame_index += 1  # 扇翅膀的速率
             self.frame_index %= len(self.frame_list)  # 0~20
             if self.rect.y >= FLOOR_H:
                 self.rect.y = FLOOR_H
                 self.gameover = 1
+                
 
         def go_die(self):
             if self.rect.y < FLOOR_H:
                 self.y_vel = self.max_y_vel
                 self.rect.y += self.y_vel
                 self.rotate = -90
-#定义道具
-class Prop:
-    pass
 
 class newMap():
     def __init__(self):

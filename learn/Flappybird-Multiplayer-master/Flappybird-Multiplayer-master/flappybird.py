@@ -47,8 +47,7 @@ class bird(object):
         self.imgRect = self.img.get_rect()
         self.imgRect.center = (self.x, self.y)
         win.blit(self.img, self.imgRect)
-self.text_nameRect.center = (self.x, s
-        elf.y - BIRD_HEIGHT)
+        self.text_nameRect.center = (self.x, self.y - BIRD_HEIGHT)
         win.blit(self.text_name,self.text_nameRect)
 
     def flap(self):

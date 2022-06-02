@@ -18,9 +18,6 @@ class Client:
     def send_msg_to_server(self, msg):
         self.client_socket.sendall(bytes(msg, 'utf-8'))
 
-    def close_connection(self):
-        self.client_socket.close()
-
     def recieve_msg(self):
         data = self.client_socket.recv(1024)
         return data.decode()
