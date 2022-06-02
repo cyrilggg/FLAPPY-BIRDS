@@ -29,5 +29,5 @@ class Network:
         data = self.client.recv(1024)
         return data.decode()
 
-    def close_connection(self):
+    def close(self):
         self.client.close()

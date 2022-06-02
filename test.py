@@ -1,142 +1,88 @@
-#coding: gbk
-from calendar import c
-import os
-import random
-import sys
- 
+# encoding=gbk
 import pygame
-from pygame import font
-from pygame.constants import MOUSEBUTTONDOWN, MOUSEMOTION
  
  
-class Color:
-    # 自定义颜色
-    ACHIEVEMENT = (220, 160, 87)
-    VERSION = (220, 160, 87)
- 
-    # 固定颜色
-    BLACK = (0, 0, 0)
-    WHITE = (255, 255, 255)
-    RED = (255, 0, 0)
-    GREEN = (0, 255, 0)
-    BLUE = (0, 0, 255)
-    GREY = (128, 128, 128)  # 中性灰
-    TRANSPARENT = (255, 255, 255, 0)  # 白色的完全透明
- 
- 
-class Text:
-    def __init__(self, text: str, text_color: Color, font_type: str, font_size: int):
+class TextBox:
+    def __init__(self, w, h, x, y, font=None, callback=None):
         """
-        text: 文本内容，如'大学生模拟器'，注意是字符串形式
-        text_color: 字体颜色，如Color.WHITE、COLOR.BLACK
-        font_type: 字体文件(.ttc)，如'msyh.ttc'，注意是字符串形式
-        font_size: 字体大小，如20、10
+        :param w:文本框宽度
+        :param h:文本框高度
+        :param x:文本框坐标
+        :param y:文本框坐标
+        :param font:文本框中使用的字体
+        :param callback:在文本框按下回车键之后的回调函数
         """
-        self.text = text
-        self.text_color = text_color
-        self.font_type = font_type
-        self.font_size = font_size
+        self.width = w
+        self.height = h
+        self.x = x
+        self.y = y
+        self.text = ""  # 文本框内容
+        self.callback = callback
+        # 创建
+        self.__surface = pygame.Surface((w, h))
+        # 如果font为None,那么效果可能不太好，建议传入font，更好调节
+        if font is None:
+            self.font = pygame.font.Font(None, 32)  # 使用pygame自带字体
+        else:
+            self.font = font
  
-        font = pygame.font.Font(os.path.join('font', (self.font_type)), self.font_size)
-        self.text_image = font.render(self.text, True, self.text_color).convert_alpha()
+    def draw(self, dest_surf):
+        text_surf = self.font.render(self.text, True, (255, 255, 255))
+        dest_surf.blit(self.__surface, (self.x, self.y))
+        dest_surf.blit(text_surf, (self.x, self.y + (self.height - text_surf.get_height())),
+                       (0, 0, self.width, self.height))
  
-        self.text_width = self.text_image.get_width()
-        self.text_height = self.text_image.get_height()
+    def key_down(self, event):
+        unicode = event.unicode
+        key = event.key
  
-    def draw(self, surface: pygame.Surface, center_x, center_y):
-        """
-        surface: 文本放置的表面
-        center_x, center_y: 文本放置在表面的<中心坐标>
-        """
-        upperleft_x = center_x - self.text_width / 2
-        upperleft_y = center_y - self.text_height / 2
-        surface.blit(self.text_image, (upperleft_x, upperleft_y))
+        # 退位键
+        if key == 8:
+            self.text = self.text[:-1]
+            return
  
+        # 切换大小写键
+        if key == 301:
+            return
  
-class Image:
-    def __init__(self, img_name: str, ratio=0.4):
-        """
-        img_name: 图片文件名，如'background.jpg'、'ink.png',注意为字符串
-        ratio: 图片缩放比例，与主屏幕相适应，默认值为0.4
-        """
-        self.img_name = img_name
-        self.ratio = ratio
+        # 回车键
+        if key == 13:
+            if self.callback is not None:
+                print(self.text)
+                self.callback()
+            return
  
-        self.image_1080x1920 = pygame.image.load(os.path.join('image', self.img_name)).convert_alpha()
-        self.img_width = self.image_1080x1920.get_width()
-        self.img_height = self.image_1080x1920.get_height()
+        if unicode != "":
+            char = unicode
+        else:
+            char = chr(key)
  
-        self.size_scaled = self.img_width * self.ratio, self.img_height * self.ratio
- 
-        self.image_scaled = pygame.transform.smoothscale(self.image_1080x1920, self.size_scaled)
-        self.img_width_scaled = self.image_scaled.get_width()
-        self.img_height_scaled = self.image_scaled.get_height()
- 
-    def draw(self, surface: pygame.Surface, center_x, center_y):
-        """
-        surface: 图片放置的表面
-        center_x, center_y: 图片放置在表面的<中心坐标>
-        """
-        upperleft_x = center_x - self.img_width_scaled / 2
-        upperleft_y = center_y - self.img_height_scaled / 2
-        surface.blit(self.image_scaled, (upperleft_x, upperleft_y))
+        self.text += char
  
  
-class ColorSurface:
-    def __init__(self, color, width, height):
-        self.color = color
-        self.width = width
-        self.height = height
- 
-        self.color_image = pygame.Surface((self.width, self.height)).convert_alpha()
-        self.color_image.fill(self.color)
- 
-    def draw(self, surface: pygame.Surface, center_x, center_y):
-        upperleft_x = center_x - self.width / 2
-        upperleft_y = center_y - self.height / 2
-        surface.blit(self.color_image, (upperleft_x, upperleft_y))
+def callback():
+    print("回车测试")
  
  
-class ButtonText(Text):
-    def __init__(self, text: str, text_color: Color, font_type: str, font_size: int):
-        super().__init__(text, text_color, font_type, font_size)
-        self.rect = self.text_image.get_rect()
+def main():
+    # 英文文本框demo
+    pygame.init()
+    winSur = pygame.display.set_mode((640, 480))
+    # 创建文本框
+    text_box = TextBox(200, 30, 200, 200, callback=callback)
  
-    def draw(self, surface: pygame.Surface, center_x, center_y):
-        super().draw(surface, center_x, center_y)
-        self.rect.center = center_x, center_y
- 
-    def handle_event(self, command):
-        self.hovered = self.rect.collidepoint(pygame.mouse.get_pos())
-        if self.hovered:
-            command()
- 
- 
-class ButtonImage(Image):
-    def __init__(self, img_name: str, ratio=0.4):
-        super().__init__(img_name, ratio)
-        self.rect = self.image_scaled.get_rect()
- 
-    def draw(self, surface: pygame.Surface, center_x, center_y):
-        super().draw(surface, center_x, center_y)
-        self.rect.center = center_x, center_y
- 
-    def handle_event(self, command):
-        self.hovered = self.rect.collidepoint(pygame.mouse.get_pos())
-        if self.hovered:
-            command()
+    # 游戏主循环
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                text_box.key_down(event)
+        pygame.time.delay(33)
+        winSur.fill((0, 50, 0))
+        text_box.draw(winSur)
+        pygame.display.flip()
  
  
-class ButtonColorSurface(ColorSurface):
-    def __init__(self, color, width, height):
-        super().__init__(color, width, height)
-        self.rect = self.color_image.get_rect()
- 
-    def draw(self, surface: pygame.Surface, center_x, center_y):
-        super().draw(surface, center_x, center_y)
-        self.rect.center = center_x, center_y
- 
-    def handle_event(self, command, *args):
-        self.hovered = self.rect.collidepoint(pygame.mouse.get_pos())
-        if self.hovered:
-            command(*args)
+if __name__ == '__main__':
+    main()

@@ -1,7 +1,6 @@
 # encoding=gbk
 import pygame
 import random
-
 ######################################## 定义变量
 MAP_WIDTH = 288  # 地图大小
 MAP_HEIGHT = 512
@@ -27,7 +26,7 @@ IMAGES['guide'] = pygame.image.load(SPRITE_FILE + 'message.png')
 IMAGES['gameover'] = pygame.image.load(SPRITE_FILE + 'gameover.png')
 IMAGES['floor'] = pygame.image.load(SPRITE_FILE + 'base.png')
 IMAGES['bgpic'] = pygame.image.load(random.choice(BGPICS))  # random的choice方法可以随机从列表里返回一个元素 白天或者黑夜
-
+IMAGES['title'] = pygame.image.load(SPRITE_FILE + 'title.png')
 # 地板的高是一个很常用的变量 因此我们专门拿出来
 FLOOR_H = MAP_HEIGHT - IMAGES['floor'].get_height()  # 屏幕高减去floor图片的高 就是他在屏幕里的位置
 
