@@ -7,6 +7,7 @@ import Map_Data
 import game
 from network import *
 from Button import *
+from text import *
 name = "123"
 ip = "127.0.0.1"
 
@@ -35,6 +36,7 @@ def show_score(score):
 
 
 def count_down(Map):
+    global GameStart
     w = IMAGES['numbers'][0].get_width()
     x = MAP_WIDTH / 2 - 2 * w / 2
     y = MAP_HEIGHT * 0.1
@@ -49,7 +51,7 @@ def count_down(Map):
         SCREEN.blit(IMAGES['floor'], (0, FLOOR_H))     
         
         for bird in Map.Birds:
-            SCREEN.blit(pygame.transform.rotate(IMAGES['bird'][bird.frame_list[bird.frame_index]], bird.rotate), bird.rect)
+            SCREEN.blit(pygame.transform.rotate([pygame.image.load(frame) for frame in bird.color][bird.frame_list[bird.frame_index]], bird.rotate), bird.rect)
             text_namerect = font.render(bird.name,True,(255,255,255)).get_rect()
             text_namerect.y = bird.rect.y - 30
             text_namerect.x = bird.rect.x
@@ -57,13 +59,44 @@ def count_down(Map):
         
         SCREEN.blit(IMAGES['numbers'][i], (x, y))
         time.sleep(0.5)
+        Return.draw_image()
         pygame.display.update()
         CLOCK.tick(FPS)
     time.sleep(0.5)
     GameStart = 1
 
+def ready(Map):
+    global GameStart
+    SCREEN.blit(IMAGES['bgpic'], (0, 0))
+    SCREEN.blit(IMAGES['floor'], (0, FLOOR_H))   
+    DISTANCE = 40
+    
+    Return.draw_image()
+    for bird in Map.Birds:
+        SCREEN.blit(pygame.transform.rotate([pygame.image.load(frame) for frame in bird.color][bird.frame_list[bird.frame_index]], bird.rotate), (bird.rect.x - 5, DISTANCE))
+        if bird.ready == 1:
+            SCREEN.blit(IMAGES['ready'], (bird.rect.x + 60, DISTANCE - 10))
+        else:
+            SCREEN.blit(IMAGES['notready'], (bird.rect.x + 60, DISTANCE - 10))
+        
+        text_namerect = font.render(bird.name,True,(255,255,255)).get_rect()
+        text_namerect.center = (bird.rect.center[0] - 5, DISTANCE - 10)
+        SCREEN.blit(font.render(bird.name,True,(0, 0, 0)), text_namerect)
+
+        DISTANCE += 60  
+    pygame.display.update()
+    if (Map.Birds[0].gamestate2):
+        count_down(Map)
+        return
+    CLOCK.tick(FPS)
+
 def redrawWindow(Map):
-    global GameState
+    global GameState,GameStart
+
+    if GameStart == 0:
+        ready(Map)
+        return
+
     SCREEN.blit(IMAGES['bgpic'], (0, 0))
     gameover_x = MAP_WIDTH * 0.5 - IMAGES['gameover'].get_width() / 2
     gameover_y = MAP_HEIGHT * 0.4
@@ -85,8 +118,8 @@ def redrawWindow(Map):
                 SCREEN.blit(font.render(str(bird.invincibility_time),True,(0, 0, 255)), text_namerect)
         
             #print(bird.rect.x)
-            if not GameStart:
-                show_score(Map.Birds[0].score)
+            if  GameStart == 1:
+                show_score(bird.score)
             #print(bird.gamestate1, bird.gamestate2)
             if bird.gameover:
                 GameState = 1
@@ -96,8 +129,9 @@ def redrawWindow(Map):
             if (bird.gamestate1):
                 SCREEN.blit(IMAGES['gameover'], (gameover_x, gameover_y))
                 GameState = 0
+                GameStart = 0
 
-        SCREEN.blit(pygame.transform.rotate(IMAGES['bird'][bird.frame_list[bird.frame_index]], bird.rotate), bird.rect)
+        SCREEN.blit(pygame.transform.rotate([pygame.image.load(frame) for frame in bird.color][bird.frame_list[bird.frame_index]], bird.rotate), bird.rect)
         text_namerect = font.render(bird.name,True,(255,255,255)).get_rect()
         text_namerect.y = bird.rect.y - 30
         text_namerect.x = bird.rect.x
@@ -109,8 +143,18 @@ def redrawWindow(Map):
 
 def connect():
     global name, ip
-    name = input("Please input your name : ")
-    ip = input("Please input the host ip you want to join : ")
+    floor_x = 0
+    SCREEN.blit(IMAGES['bgpic'], (0, 0))
+    SCREEN.blit(IMAGES['floor'], (floor_x, FLOOR_H))
+    SCREEN.blit(IMAGES['title'], (52.0, 61.44))
+    name = get_text(SCREEN, "Your Name")
+    
+    SCREEN.blit(IMAGES['bgpic'], (0, 0))
+    SCREEN.blit(IMAGES['floor'], (floor_x, FLOOR_H))
+    SCREEN.blit(IMAGES['title'], (52.0, 61.44))
+    ip = get_text(SCREEN, "Target Ip")
+    #name = input("Please input your name : ")
+    #ip = input("Please input the host ip you want to join : ")
     global Own_Ip, GameState
     pygame.init()
     run = True
@@ -148,8 +192,5 @@ def connect():
                 if Return.image_rect.collidepoint(mouse_x, mouse_y):#是不是按到回去了
                     n.close()
                     game.main_title()
-
-        
-
 if __name__ == '__main__':
     connect()

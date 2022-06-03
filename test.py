@@ -1,9 +1,9 @@
 # encoding=gbk
 import pygame
- 
+import time
  
 class TextBox:
-    def __init__(self, w, h, x, y, font=None, callback=None):
+    def __init__(self, w, h, x, y, font=None):
         """
         :param w:文本框宽度
         :param h:文本框高度
@@ -17,10 +17,8 @@ class TextBox:
         self.x = x
         self.y = y
         self.text = ""  # 文本框内容
-        self.callback = callback
         # 创建
         self.__surface = pygame.Surface((w, h))
-        # 如果font为None,那么效果可能不太好，建议传入font，更好调节
         if font is None:
             self.font = pygame.font.Font(None, 32)  # 使用pygame自带字体
         else:
@@ -48,7 +46,6 @@ class TextBox:
         # 回车键
         if key == 13:
             if self.callback is not None:
-                print(self.text)
                 self.callback()
             return
  
@@ -58,30 +55,33 @@ class TextBox:
             char = chr(key)
  
         self.text += char
- 
- 
-def callback():
-    print("回车测试")
- 
- 
-def main():
-    # 英文文本框demo
-    pygame.init()
-    winSur = pygame.display.set_mode((640, 480))
-    # 创建文本框
-    text_box = TextBox(200, 30, 200, 200, callback=callback)
- 
+
+def get_text(winSur):
+    text_box = TextBox(200, 30, 200, 200)
     # 游戏主循环
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit()
             elif event.type == pygame.KEYDOWN:
-                text_box.key_down(event)
+                if event.key == 13:
+                    time.sleep(0.5)
+                    return text_box.text
+                else:
+                    text_box.key_down(event)
         pygame.time.delay(33)
         winSur.fill((0, 50, 0))
         text_box.draw(winSur)
         pygame.display.flip()
+
+def main():
+    # 英文文本框demo
+    pygame.init()
+    winSur = pygame.display.set_mode((640, 480))
+    # 创建文本框
+    msg = get_text(winSur)
+    
+    print(msg)
  
  
 if __name__ == '__main__':

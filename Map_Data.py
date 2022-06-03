@@ -27,10 +27,13 @@ IMAGES['gameover'] = pygame.image.load(SPRITE_FILE + 'gameover.png')
 IMAGES['floor'] = pygame.image.load(SPRITE_FILE + 'base.png')
 IMAGES['bgpic'] = pygame.image.load(random.choice(BGPICS))  # random的choice方法可以随机从列表里返回一个元素 白天或者黑夜
 IMAGES['title'] = pygame.image.load(SPRITE_FILE + 'title.png')
+IMAGES['notready'] = pygame.image.load(SPRITE_FILE + 'notready.png')
+IMAGES['ready'] = pygame.image.load(SPRITE_FILE + 'ready.png')
 # 地板的高是一个很常用的变量 因此我们专门拿出来
 FLOOR_H = MAP_HEIGHT - IMAGES['floor'].get_height()  # 屏幕高减去floor图片的高 就是他在屏幕里的位置
 
 IMAGES['bird'] = [pygame.image.load(frame) for frame in random.choice(BIRDS)]  # 列表推导式 鸟也是随机
+
 pipe = pygame.image.load(random.choice(PIPES))
 IMAGES['pipe'] = [pipe, pygame.transform.flip(pipe, False, True)] 
 
@@ -46,6 +49,7 @@ class Pipe():
         self.brect.x = x
         
     def update(self):
+        
         self.trect.x += self.x_vel  # 管道x轴加移动速度
         self.brect.x += self.x_vel
         if self.trect.x < -IMAGES['pipe'][1].get_width():
@@ -53,11 +57,12 @@ class Pipe():
             self.brect.bottom = self.trect.top - random.choice(PIPE_GAPS)
             self.trect.x = MAP_WIDTH
             self.brect.x = MAP_WIDTH
+            return True
+        return False
 
 class Bird():
         def __init__(self, addr, name):
             self.name = name
-            self.score = 0
             self.frame_list = [0] * 5 + [1] * 5 + [2] * 5 + [1] * 5  # 控制小鸟翅膀运动上中下
             self.frame_index = 0
             self.y_vel = -10  # y坐标的速度
@@ -85,7 +90,14 @@ class Bird():
             self.curstate = False
             self.surstate = False
             
+            self.ready = False
+
             self.ip = addr
+
+            self.color = random.choice(BIRDS)
+
+            self.score = 0
+            self.score_updated = 0
 
         def update(self, flap=False):
             if flap:

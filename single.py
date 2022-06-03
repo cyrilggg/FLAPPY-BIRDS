@@ -134,8 +134,9 @@ def game_window():
         bird.update(flap)
 
         for pipe in Pipes:
+            print(pipe.trect.x)
             pipe.update()
-
+        print(bird.rect.x)
         if bird.rect.y > FLOOR_H or bird.rect.y < 0:
             # 保存死亡时的鸟儿 分数 管道 继续显示在结束窗口
             bird.go_die()
@@ -146,7 +147,7 @@ def game_window():
                 run = False
 
         #当小鸟左边大于 管道右边就得分
-        if Pipes[0].trect.x == 56 or Pipes[1].trect.x == 56:
+        if Pipes[0].trect.x == 56 or Pipes[1].trect.x == 56 or Pipes[1].trect.x == 54:
             bird.score += 1
         
         redrawWindow()
@@ -191,10 +192,6 @@ def redrawWindow():
         GameState = 0
 
     SCREEN.blit(pygame.transform.rotate(IMAGES['bird'][bird.frame_list[bird.frame_index]], bird.rotate), bird.rect)
-    text_namerect = font.render(bird.name,True,(255,255,255)).get_rect()
-    text_namerect.y = bird.rect.y - 30
-    text_namerect.x = bird.rect.x
-    SCREEN.blit(font.render(bird.name,True,(0, 0, 0)), text_namerect)
     
     pygame.display.update()
 

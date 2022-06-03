@@ -5,7 +5,7 @@ from Map_Data import *
 from Button import *
 import pygame
 import random
-
+from text import *
 # 游戏基本设置
 font = pygame.font.SysFont('resources/FlappyBirdFont.ttf', 30)
 
@@ -51,6 +51,7 @@ def single_type():
 
 #多人模式
 def multi_type():
+
     client.connect()
 
 #设置
@@ -58,10 +59,7 @@ def multi_type():
 #界面有 设置皮肤 设置名字 调整声音大小 调整音效大小
 def setting():
     pass
-    setting.py()
-    dress()
+    setting()
 
 if __name__ == '__main__':
     main_title()
-
-

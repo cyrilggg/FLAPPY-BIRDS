@@ -20,6 +20,8 @@ number_of_clients = 0
 ready_players = 0
 dead_players=0
 
+UPDATE = 0
+
 GameState = "GameOver"
 ready = []
 def send_to_all_client():
@@ -33,26 +35,42 @@ def send_to_all_client():
             print(e)
             return
 
-def handle_disconnect(client):
+def handle_disconnect(conn, addr):
     #Removes player from the lists
-    global Map, number_of_clients,conns
-    Map.Birds.pop(client)
-    conns.pop(client)
+    global Map, number_of_clients,conns, GameState, ready_players, dead_players
+    Birdss = []
+    ncons = []
+    for bird in Map.Birds:
+        if bird.ip != addr[0]:
+            Birdss.append(bird)
+        else:
+            if bird.curstate:
+                ready_players -= 1
+            if bird.surstate:
+                dead_players -= 1
+    for co in conns:
+        if co != conn:
+            ncons.append(co)
+
+    conns = ncons
+    Map.Birds = Birdss   
+    #Map.Birds.pop(client)
+    #conns.pop(client)
     number_of_clients -= 1
     if number_of_clients == 0:
         Pipe_Init()
+        GameState = "Gameover"
 
 #接收地图数据并回传
 def threaded_client(conn, addr):
     global Map, number_of_clients, ready_players, dead_players, GameState
-    id = number_of_clients
     number_of_clients += 1
     curstate = False
     surstate = False
-
+    global SCORE_UPDATE
     while True:
         try:
-            print(ready)
+            #print(ready)
             data = pickle.loads(conn.recv(2048))
             #print(type(data),data.up)
             flag = True
@@ -64,41 +82,44 @@ def threaded_client(conn, addr):
                 for bird in Map.Birds:
                     if bird.ip == addr[0]:
                         if data.up and not bird.curstate:
+                            bird.ready = 1
                             bird.curstate = True
                             ready_players += 1
                             ready.append(addr[0])
-                            if ready_players == number_of_clients:
-                                print("GAMESTART")
-                                for bird in Map.Birds:
-                                    bird.gamestate2 = 1
-                                flag = False
-                                send_to_all_client()
-                                #conn.sendall(pickle.dumps(Map))
-                                for bird in Map.Birds:
-                                    bird.gamestate2 = 0
-                                GameState = "Start"
-                                ready_players = 0
-                                time.sleep(2)
-                                start_new_thread(update_pipe,())#开一个线程去全局更新地图
+                        print(GameState, ready_players, number_of_clients)
+                        if GameState == "Gameover" and ready_players >= number_of_clients:
+                            print("GAMESTART")
+                            for bird in Map.Birds:
+                                bird.gamestate2 = 1
+                            flag = False
+                            send_to_all_client()
+                            #conn.sendall(pickle.dumps(Map))
+                            for bird in Map.Birds:
+                                bird.gamestate2 = 0
+                            GameState = "Start"
+                            ready_players = 0
+                            time.sleep(2)
+                            SCORE_UPDATE = 0
+                            start_new_thread(update_pipe,())#开一个线程去全局更新地图
                                 
                         
                         if data.gameover and not bird.surstate:
                             bird.surstate = True
                             dead_players += 1
-                            if dead_players == number_of_clients:
-                                for bird in Map.Birds:
-                                    bird.gamestate1 = 1
-                                flag = False
-                                send_to_all_client()
-                                #conn.sendall(pickle.dumps(Map))
-                                GameState = "Gameover"
-                                Pipe_Init()
-                                for bird in Map.Birds:
-                                    bird.__init__(bird.ip, bird.name)
-                                bird.curstate = False
-                                bird.surstate = False
-                                dead_players = 0
-                                ready.clear()
+                        if GameState == "Start" and dead_players >= number_of_clients:
+                            for bird in Map.Birds:
+                                bird.gamestate1 = 1
+                            flag = False
+                            send_to_all_client()
+                            #conn.sendall(pickle.dumps(Map))
+                            GameState = "Gameover"
+                            Pipe_Init()
+                            for bird in Map.Birds:
+                                bird.__init__(bird.ip, bird.name)
+                            bird.curstate = False
+                            bird.surstate = False
+                            dead_players = 0
+                            ready.clear()
                 
                 #更新数据
                 if GameState == "Start":
@@ -112,7 +133,7 @@ def threaded_client(conn, addr):
             import traceback
             traceback.print_exc()
             print('[!] Client disconnected!')
-            handle_disconnect(id)
+            handle_disconnect(conn, addr)
             break
 
 
@@ -121,10 +142,10 @@ def threaded_client(conn, addr):
 #更新地图
 def analize_map(Data):
     
-    global Map
+    global Map, UPDATE
     #for pipe in Map.Pipes:
     #    pipe.update()
-    print(Data.ip, Map.Birds[0].ip)
+    #print(Data.ip, Map.Birds[0].ip)
     for bird in Map.Birds:
         if bird.gameover == 1:
             if bird.rect.y < FLOOR_H:
@@ -134,7 +155,7 @@ def analize_map(Data):
             continue
         
         if bird.ip == Data.ip:
-            print (bird.ip, Data.ip)
+            #print (bird.ip, Data.ip)
             #使用道具
             flap = False
             if Data.prop:
@@ -152,8 +173,12 @@ def analize_map(Data):
                         bird.gameover = 1
                         bird.go_die() 
         #当小鸟左边大于 管道右边就得分
-        if Map.Pipes[0].trect.x == 56 or Map.Pipes[1].trect.x == 56:
+            #if (Map.Pipes[0].trect.x <= 56 and Map.Pipes[0].trect.x >= 53) or (Map.Pipes[1].trect.x <= 56 and Map.Pipes[1].trect.x >= 53) == 56:
+                #bird.score += 1
+    if UPDATE == 1:
+        for bird in Map.Birds:
             bird.score += 1
+        UPDATE = 0
     
 #碰撞了就删掉
     
@@ -161,11 +186,13 @@ def analize_map(Data):
 
 #线程：一直更新柱子
 def update_pipe():
-    global Map
+    global Map,number_of_clients, UPDATE
     while GameState == "Start":
         for pipe in Map.Pipes:
-            pipe.update()
-        time.sleep(0.04)
+            if (pipe.update()):
+                UPDATE = 1
+
+        time.sleep(0.03 * number_of_clients)
 
 def init():
     global HOST, PORT, ADDR
@@ -185,10 +212,11 @@ def Game_Start(conn, addr):
     start_new_thread(threaded_client, (conn, addr))
 
 def Pipe_Init():
-    global Map
+    global Map, SCORE_UPDATE
+    SCORE_UPDATE = 0
     Map.Pipes.clear()
     Pipe1 = Pipe(MAP_WIDTH)
-    Pipe2 = Pipe(MAP_WIDTH + PIPE_DISTANCE)
+    Pipe2 = Pipe(MAP_WIDTH + 160)
     Map.Pipes.append(Pipe1)
     Map.Pipes.append(Pipe2)
 
