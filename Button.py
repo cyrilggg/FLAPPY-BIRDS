@@ -40,4 +40,3 @@ class Button():
     
     def draw_image(self):
         self.screen.blit(self.image, self.image_rect)
-

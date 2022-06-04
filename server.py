@@ -22,8 +22,9 @@ dead_players=0
 
 UPDATE = 0
 
-GameState = "GameOver"
+GameState = "Gameover"
 ready = []
+
 def send_to_all_client():
     global Map
     for conn in conns:
@@ -48,6 +49,7 @@ def handle_disconnect(conn, addr):
                 ready_players -= 1
             if bird.surstate:
                 dead_players -= 1
+
     for co in conns:
         if co != conn:
             ncons.append(co)
@@ -109,6 +111,8 @@ def threaded_client(conn, addr):
                         if GameState == "Start" and dead_players >= number_of_clients:
                             for bird in Map.Birds:
                                 bird.gamestate1 = 1
+                                bird.curstate = False
+                                bird.surstate = False
                             flag = False
                             send_to_all_client()
                             #conn.sendall(pickle.dumps(Map))
@@ -128,7 +132,7 @@ def threaded_client(conn, addr):
             if flag:
                 #send_to_all_client()
                 conn.sendall(pickle.dumps(Map))
-            time.sleep(0.03)
+            time.sleep(0.1)
         except Exception as e:
             import traceback
             traceback.print_exc()
@@ -181,18 +185,17 @@ def analize_map(Data):
         UPDATE = 0
     
 #碰撞了就删掉
-    
-#设置服务器
+#设置服务器 
 
 #线程：一直更新柱子
 def update_pipe():
-    global Map,number_of_clients, UPDATE
+    global Map, UPDATE
     while GameState == "Start":
         for pipe in Map.Pipes:
             if (pipe.update()):
                 UPDATE = 1
 
-        time.sleep(0.03 * number_of_clients)
+        time.sleep(0.06)
 
 def init():
     global HOST, PORT, ADDR
@@ -237,7 +240,7 @@ def main():
                 conn, addr = s.accept()
                 conns.append(conn)
                 print('[*] Client connected from: ',addr[0],':',addr[1],sep='')
-                Game_Start(conn, addr)
+                Game_Start(conn, addr) #给他单独开一个开始游戏的线程
             print("current game is over")
             s.close()
 

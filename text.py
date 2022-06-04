@@ -10,7 +10,6 @@ class TextBox:
         :param x:文本框坐标
         :param y:文本框坐标
         :param font:文本框中使用的字体
-        :param callback:在文本框按下回车键之后的回调函数
         """
         self.width = w
         self.height = h
@@ -85,14 +84,11 @@ def get_text(winSur, str):
         pygame.display.flip()
 
 def main():
-    # 英文文本框demo
     pygame.init()
     winSur = pygame.display.set_mode((640, 480))
     # 创建文本框
     msg = get_text(winSur)
-    
     print(msg)
- 
  
 if __name__ == '__main__':
     main()

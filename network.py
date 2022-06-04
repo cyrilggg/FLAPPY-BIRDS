@@ -5,7 +5,7 @@ from Map_Data import *
 
 class Network:
     def __init__(self, ip):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)#连接目标服务器
         self.server = ip
         self.port = 5555
         self.addr = (self.server, self.port)

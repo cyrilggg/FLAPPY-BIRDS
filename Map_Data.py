@@ -1,16 +1,16 @@
 # encoding=gbk
 import pygame
 import random
-######################################## 定义变量
+
+# 定义变量
 MAP_WIDTH = 288  # 地图大小
 MAP_HEIGHT = 512
 FPS = 60  # 刷新率
 PIPE_GAPS = [180, 190, 150, 160, 145, 140]  # 缺口的距离 有这6个随机距离
-# PIPE_GAPS1 = []
 PIPE_HEIGHT_RANGE = [int(MAP_HEIGHT * 0.4), int(MAP_HEIGHT * 0.7)]  # 管道长度范围
 PIPE_DISTANCE = 160  # 管道之间距离
 
-######################################## 加载素材
+# 加载素材
 SPRITE_FILE = '.\images\\'
 # 列表推导式 获得三种不同的鸟和三种状态
 
@@ -29,8 +29,8 @@ IMAGES['bgpic'] = pygame.image.load(random.choice(BGPICS))  # random的choice方法
 IMAGES['title'] = pygame.image.load(SPRITE_FILE + 'title.png')
 IMAGES['notready'] = pygame.image.load(SPRITE_FILE + 'notready.png')
 IMAGES['ready'] = pygame.image.load(SPRITE_FILE + 'ready.png')
-# 地板的高是一个很常用的变量 因此我们专门拿出来
-FLOOR_H = MAP_HEIGHT - IMAGES['floor'].get_height()  # 屏幕高减去floor图片的高 就是他在屏幕里的位置
+
+FLOOR_H = MAP_HEIGHT - IMAGES['floor'].get_height() 
 
 IMAGES['bird'] = [pygame.image.load(frame) for frame in random.choice(BIRDS)]  # 列表推导式 鸟也是随机
 
@@ -71,7 +71,7 @@ class Bird():
             self.rotate_vel = -3  # 转向速度
             self.max_rotate = -30  # 最大转向速度
             self.flap_rotate = 45  # 按了空格只会脑袋朝向上30度
-            #self.image = IMAGES['bird'][self.frame_list[self.frame_index]]  # 和菜单界面小鸟扇翅膀一个原理
+
             self.rect = pygame.transform.rotate(IMAGES['bird'][self.frame_list[self.frame_index]], self.rotate).get_rect()  # 鸟儿的矩形
             self.rect.x = MAP_WIDTH * 0.2
             self.rect.y = MAP_HEIGHT * 0.5 - IMAGES['bird'][0].get_height() / 2
@@ -94,7 +94,7 @@ class Bird():
 
             self.ip = addr
 
-            self.color = random.choice(BIRDS)
+            self.color = random.choice(BIRDS) #随机鸟颜色
 
             self.score = 0
             self.score_updated = 0

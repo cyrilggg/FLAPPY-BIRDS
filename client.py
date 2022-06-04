@@ -23,6 +23,7 @@ pygame.display.set_caption("clinet")
 
 GameState = 0
 GameStart = 0
+GameCount = 0
 
 Return = Button(SCREEN,"NONE" ,"Single", 5, 15)
 def show_score(score):
@@ -66,7 +67,7 @@ def count_down(Map):
     GameStart = 1
 
 def ready(Map):
-    global GameStart
+    global GameStart, GameCount
     SCREEN.blit(IMAGES['bgpic'], (0, 0))
     SCREEN.blit(IMAGES['floor'], (0, FLOOR_H))   
     DISTANCE = 40
@@ -85,13 +86,14 @@ def ready(Map):
 
         DISTANCE += 60  
     pygame.display.update()
-    if (Map.Birds[0].gamestate2):
+    if (Map.Birds[0].gamestate2 and GameCount == 0):
+        GameCount = 1
         count_down(Map)
         return
     CLOCK.tick(FPS)
 
 def redrawWindow(Map):
-    global GameState,GameStart
+    global GameState,GameStart, GameCount
 
     if GameStart == 0:
         ready(Map)
@@ -123,13 +125,15 @@ def redrawWindow(Map):
             #print(bird.gamestate1, bird.gamestate2)
             if bird.gameover:
                 GameState = 1
-            if (bird.gamestate2):
+            if (bird.gamestate2 and GameCount == 0):
                 count_down(Map)
+                GameCount = 1
                 return
             if (bird.gamestate1):
                 SCREEN.blit(IMAGES['gameover'], (gameover_x, gameover_y))
                 GameState = 0
                 GameStart = 0
+                GameCount = 0
 
         SCREEN.blit(pygame.transform.rotate([pygame.image.load(frame) for frame in bird.color][bird.frame_list[bird.frame_index]], bird.rotate), bird.rect)
         text_namerect = font.render(bird.name,True,(255,255,255)).get_rect()
@@ -167,7 +171,7 @@ def connect():
     
     while run:
         #print("Successs")
-        clock.tick(60)
+        clock.tick(60)  
         d = Data()
         
         d.ip = Own_Ip
