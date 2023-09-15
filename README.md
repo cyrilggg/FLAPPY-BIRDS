@@ -1,4 +1,5 @@
 # FLAPPY-BIRDS
+python课程的大作业，写了一个flappy-bird的多人版小游戏
 ## 游戏玩法:
 点进game.py运行，即可进行单人游戏
 
